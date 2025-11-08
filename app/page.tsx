@@ -13,7 +13,7 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Base URL</h2>
           <div className="bg-gray-100 rounded p-4 font-mono text-sm">
             <p className="text-blue-600">Local: http://localhost:3000</p>
-            <p className="text-blue-600">Production: https://your-app.vercel.app</p>
+            <p className="text-blue-600">Production: https://cmps312-books-api.vercel.app</p>
           </div>
         </section>
 
