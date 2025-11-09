@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCategories, saveCategories, getBooks, saveBooks } from '@/lib/db';
+import { getCategoryById, updateCategory, deleteCategory, checkCategoryHasBooks } from '@/lib/db';
 
 type Params = {
   params: Promise<{
@@ -13,8 +13,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { id } = await params;
     const categoryId = parseInt(id);
 
-    const categories = await getCategories();
-    const category = categories.find(c => c.id === categoryId);
+    const category = await getCategoryById(categoryId);
 
     if (!category) {
       return NextResponse.json(
@@ -47,24 +46,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    const categories = await getCategories();
-    const index = categories.findIndex(c => c.id === categoryId);
+    const updatedCategory = await updateCategory(categoryId, { name, description });
 
-    if (index === -1) {
+    if (!updatedCategory) {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
       );
     }
 
-    categories[index] = {
-      id: categoryId,
-      name,
-      description,
-    };
-
-    await saveCategories(categories);
-    return NextResponse.json(categories[index]);
+    return NextResponse.json(updatedCategory);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update category' },
@@ -80,8 +71,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const categoryId = parseInt(id);
 
     // Check if category has books
-    const books = await getBooks();
-    const hasBooks = books.some(b => b.categoryId === categoryId);
+    const hasBooks = await checkCategoryHasBooks(categoryId);
 
     if (hasBooks) {
       return NextResponse.json(
@@ -90,18 +80,14 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       );
     }
 
-    const categories = await getCategories();
-    const index = categories.findIndex(c => c.id === categoryId);
+    const deleted = await deleteCategory(categoryId);
 
-    if (index === -1) {
+    if (!deleted) {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
       );
     }
-
-    categories.splice(index, 1);
-    await saveCategories(categories);
 
     return NextResponse.json({ message: 'Category deleted successfully' });
   } catch (error) {

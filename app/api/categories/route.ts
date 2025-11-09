@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCategories, saveCategories, Category } from '@/lib/db';
+import { getCategories, addCategory } from '@/lib/db';
 
 // GET /api/categories - Get all categories
 export async function GET() {
@@ -27,21 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const categories = await getCategories();
-
-    // Generate new ID
-    const newId = categories.length > 0
-      ? Math.max(...categories.map(c => c.id)) + 1
-      : 1;
-
-    const newCategory: Category = {
-      id: newId,
-      name,
-      description,
-    };
-
-    categories.push(newCategory);
-    await saveCategories(categories);
+    const newCategory = await addCategory({ name, description });
 
     return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {

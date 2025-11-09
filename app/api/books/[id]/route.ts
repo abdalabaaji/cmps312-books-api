@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBooks, saveBooks, getCategories } from '@/lib/db';
+import { getBookById, updateBook, deleteBook, getCategoryById } from '@/lib/db';
 
 type Params = {
   params: Promise<{
@@ -13,8 +13,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { id } = await params;
     const bookId = parseInt(id);
 
-    const books = await getBooks();
-    const book = books.find(b => b.id === bookId);
+    const book = await getBookById(bookId);
 
     if (!book) {
       return NextResponse.json(
@@ -48,36 +47,30 @@ export async function PUT(request: NextRequest, { params }: Params) {
     }
 
     // Validate category exists
-    const categories = await getCategories();
-    const categoryExists = categories.some(c => c.id === categoryId);
+    const category = await getCategoryById(parseInt(categoryId.toString()));
 
-    if (!categoryExists) {
+    if (!category) {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
       );
     }
 
-    const books = await getBooks();
-    const index = books.findIndex(b => b.id === bookId);
+    const updatedBook = await updateBook(bookId, {
+      title,
+      author,
+      year: parseInt(year.toString()),
+      categoryId: parseInt(categoryId.toString()),
+    });
 
-    if (index === -1) {
+    if (!updatedBook) {
       return NextResponse.json(
         { error: 'Book not found' },
         { status: 404 }
       );
     }
 
-    books[index] = {
-      id: bookId,
-      title,
-      author,
-      year: parseInt(year.toString()),
-      categoryId: parseInt(categoryId.toString()),
-    };
-
-    await saveBooks(books);
-    return NextResponse.json(books[index]);
+    return NextResponse.json(updatedBook);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update book' },
@@ -92,18 +85,14 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const { id } = await params;
     const bookId = parseInt(id);
 
-    const books = await getBooks();
-    const index = books.findIndex(b => b.id === bookId);
+    const deleted = await deleteBook(bookId);
 
-    if (index === -1) {
+    if (!deleted) {
       return NextResponse.json(
         { error: 'Book not found' },
         { status: 404 }
       );
     }
-
-    books.splice(index, 1);
-    await saveBooks(books);
 
     return NextResponse.json({ message: 'Book deleted successfully' });
   } catch (error) {
