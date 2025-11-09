@@ -40,7 +40,7 @@ export async function saveCategories(categories: Category[]): Promise<void> {
 }
 
 export async function getBooks(): Promise<Book[]> {
-  const { rows } = await query<Book>('SELECT * FROM books ORDER BY id');
+  const { rows } = await query<Book>('SELECT id, title, author, year, categoryId as "categoryId" FROM books ORDER BY id');
   return rows;
 }
 
@@ -78,7 +78,7 @@ export async function getCategoryById(id: number): Promise<Category | null> {
 
 export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
   const { rows } = await query<Book>(
-    'INSERT INTO books (title, author, year, categoryId) VALUES ($1, $2, $3, $4) RETURNING *',
+    'INSERT INTO books (title, author, year, categoryId) VALUES ($1, $2, $3, $4) RETURNING id, title, author, year, categoryId as "categoryId"',
     [book.title, book.author, book.year, book.categoryId]
   );
   return rows[0];
@@ -86,7 +86,7 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
 
 export async function updateBook(id: number, book: Omit<Book, 'id'>): Promise<Book | null> {
   const { rows } = await query<Book>(
-    'UPDATE books SET title = $1, author = $2, year = $3, categoryId = $4 WHERE id = $5 RETURNING *',
+    'UPDATE books SET title = $1, author = $2, year = $3, categoryId = $4 WHERE id = $5 RETURNING id, title, author, year, categoryId as "categoryId"',
     [book.title, book.author, book.year, book.categoryId, id]
   );
   return rows[0] || null;
@@ -98,12 +98,12 @@ export async function deleteBook(id: number): Promise<boolean> {
 }
 
 export async function getBookById(id: number): Promise<Book | null> {
-  const { rows } = await query<Book>('SELECT * FROM books WHERE id = $1', [id]);
+  const { rows } = await query<Book>('SELECT id, title, author, year, categoryId as "categoryId" FROM books WHERE id = $1', [id]);
   return rows[0] || null;
 }
 
 export async function getBooksByCategory(categoryId: number): Promise<Book[]> {
-  const { rows } = await query<Book>('SELECT * FROM books WHERE categoryId = $1 ORDER BY id', [categoryId]);
+  const { rows } = await query<Book>('SELECT id, title, author, year, categoryId as "categoryId" FROM books WHERE categoryId = $1 ORDER BY id', [categoryId]);
   return rows;
 }
 
